@@ -115,6 +115,12 @@ public class MainActivity extends AppCompatActivity {
                 //Log.d("speed_debug", "[COMPLETED] rate in bit/s  Double : " + );
                 //convertToMbps( report.getTransferRateBit());
                 convertToMbps(report.getTransferRateBit().doubleValue());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        binding.checkSpeedBtn.setVisibility(View.VISIBLE);
+                    }
+                });
             }
 
             @Override
@@ -143,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
 
            if (ConnectionManager.isOnline(getApplicationContext())){
                new SpeedTestAsyncTask().execute();
+               binding.checkSpeedBtn.setVisibility(View.INVISIBLE);
            }
            else {
                Toast.makeText(getApplicationContext(), "No Internet", Toast.LENGTH_SHORT).show();
