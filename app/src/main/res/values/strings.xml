@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">InternetSppedTester</string>
+    <string name="show_speed">Show Speed</string>
+    <string name="internet_speed_test">Internet Speed Test</string>
+    <string name="todo">Todo</string>
+    <string name="check_speed">Check Speed</string>
+    <string name="device_info">Device Info</string>
+</resources>
