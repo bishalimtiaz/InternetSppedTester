@@ -74,10 +74,11 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
 
     private SpeedTestSocket speedTestSocket = new SpeedTestSocket();
-    private InfoBottomsheetBinding bottomSheetBinding;
+    //private InfoBottomsheetBinding bottomSheetBinding;
+    //private BottomSheetBehavior behavior;
     //Map<String,String> info_map = new HashMap<>();
     private List<Info> infoList = new ArrayList<>();
-    private BottomSheetBehavior behavior;
+
     private InfoAdapter adapter;
 
     private boolean doubleBackToExitPressedOnce = false;
@@ -161,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         View view = binding.getRoot();
-        bottomSheetBinding = binding.bottomSheet;
+        //bottomSheetBinding = binding.bottomSheet;
         setContentView(view);
         initialSetup();
         setupListeners();
@@ -175,11 +176,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         // Within {@code onPause()}, we remove location updates. Here, we resume receiving
         // location updates if the user has requested them.
-        if (checkPermissions()) {
-            startLocationUpdates();
-        } else if (!checkPermissions()) {
-            requestPermissions();
-        }
+
     }
 
     @Override
@@ -218,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
     private void initialSetup() {
 
         //checkInternetValidity();
-        behavior = BottomSheetBehavior.from(binding.bottomSheet.getRoot());
+        //behavior = BottomSheetBehavior.from(binding.bottomSheet.getRoot());
         mRequestingLocationUpdates = false;
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mSettingsClient = LocationServices.getSettingsClient(this);
@@ -228,16 +225,32 @@ public class MainActivity extends AppCompatActivity {
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingsRequest();
+        getDeviceInfo();
+
+        if (ConnectionManager.isOnline(getApplicationContext())){
+            getPublicIP();
+        }
+        else {
+            Toast.makeText(getApplicationContext(), "No Internet", Toast.LENGTH_SHORT).show();
+        }
+
+        if (checkPermissions()) {
+            mRequestingLocationUpdates = true;
+            startLocationUpdates();
+        } else if (!checkPermissions()) {
+            requestPermissions();
+        }
+
 
     }
 
     private void initializeRecyclerView() {
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-        bottomSheetBinding.rvInfo.setHasFixedSize(true);
-        bottomSheetBinding.rvInfo.setLayoutManager(layoutManager);
-        adapter = new InfoAdapter(getApplicationContext(),infoList);
-        bottomSheetBinding.rvInfo.setAdapter(adapter);
+        binding.rvDeviceInfo.setHasFixedSize(true);
+        binding.rvDeviceInfo.setLayoutManager(layoutManager);
+        adapter = new InfoAdapter(getApplicationContext(),infoList, binding.rvDeviceInfo);
+        binding.rvDeviceInfo.setAdapter(adapter);
     }
 
     private void setupListeners() {
@@ -257,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         binding.checkSpeedBtn.setVisibility(View.VISIBLE);
+                        binding.speedProgressBar.setVisibility(View.GONE);
                     }
                 });
             }
@@ -287,7 +301,8 @@ public class MainActivity extends AppCompatActivity {
 
            if (ConnectionManager.isOnline(getApplicationContext())){
                new SpeedTestAsyncTask().execute();
-               binding.checkSpeedBtn.setVisibility(View.INVISIBLE);
+               binding.checkSpeedBtn.setVisibility(View.GONE);
+               binding.speedProgressBar.setVisibility(View.VISIBLE);
            }
            else {
                Toast.makeText(getApplicationContext(), "No Internet", Toast.LENGTH_SHORT).show();
@@ -296,17 +311,18 @@ public class MainActivity extends AppCompatActivity {
         });
 
        binding.infoBtn.setOnClickListener(v -> {
-           infoList.clear();
-           getDeviceInfo();
-           checkInternetValidity();
-           getAddress();
-           getPublicIP();
-           adapter.setInfoList(infoList);
-           behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+           //infoList.clear();
+           /** Comment out to get Private Network Information
+            * Like Device is connected with Wi-FI or Mobile Data
+            * private IP**/
+           /**checkInternetValidity();**/
+
+           //adapter.setInfoList(infoList);
+           //behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
            Log.d("location_debug", "setupClicks: lattitude: " + mCurrentLocation.getLatitude()+ " Longitude: " + mCurrentLocation.getLongitude());
        });
 
-       bottomSheetBinding.cancelBtn.setOnClickListener(v -> behavior.setState(BottomSheetBehavior.STATE_COLLAPSED));
+       //bottomSheetBinding.cancelBtn.setOnClickListener(v -> behavior.setState(BottomSheetBehavior.STATE_COLLAPSED));
 
 
     }
@@ -363,8 +379,9 @@ public class MainActivity extends AppCompatActivity {
            runOnUiThread(new Runnable() {
                @Override
                public void run() {
-                   binding.speedometer.speedTo((float) m,10);
-                   binding.speedometer.setUnit(" mbps");
+                   //binding.speedometer.speedTo((float) m,10);
+                   //binding.speedometer.setUnit(" mbps");
+                   binding.tvDownloadSpeed.setText(hrSize);
                }
            });
         } else if ( k>1 ) {
@@ -372,8 +389,9 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    binding.speedometer.speedTo((float) m,10);
-                    binding.speedometer.setUnit(" kbps");
+                    //binding.speedometer.speedTo((float) m,10);
+                    //binding.speedometer.setUnit(" kbps");
+                    binding.tvDownloadSpeed.setText(hrSize);
                 }
             });
         } else {
@@ -385,36 +403,38 @@ public class MainActivity extends AppCompatActivity {
 
     private void getDeviceInfo(){
 
+        /** Comment out to show other device Info*/
+
         Log.d("device_info_debug", "OS_VERSION: " + DeviceInfoManager.OS_VERSION);
         infoList.add(new Info("Os Version" , DeviceInfoManager.OS_VERSION));
         /*Log.d("device_info_debug", "API_LEVEL: " + DeviceInfoManager.API_LEVEL);*/
         infoList.add(new Info("Api Level" , DeviceInfoManager.API_LEVEL));
         /*Log.d("device_info_debug", "DEVICE: " + DeviceInfoManager.DEVICE);*/
-        infoList.add(new Info("Device" , DeviceInfoManager.DEVICE));
+        //infoList.add(new Info("Device" , DeviceInfoManager.DEVICE));
         /*Log.d("device_info_debug", "MODEL: " + DeviceInfoManager.MODEL);*/
         infoList.add(new Info("Model" , DeviceInfoManager.MODEL));
        /* Log.d("device_info_debug", "PRODUCT: " + DeviceInfoManager.PRODUCT);*/
-        infoList.add(new Info("Product" , DeviceInfoManager.PRODUCT));
+        //infoList.add(new Info("Product" , DeviceInfoManager.PRODUCT));
         /*Log.d("device_info_debug", "RELEASE: " + DeviceInfoManager.RELEASE);*/
-        infoList.add(new Info("Release" , DeviceInfoManager.RELEASE));
+        infoList.add(new Info("Android Version" , DeviceInfoManager.RELEASE));
         /*Log.d("device_info_debug", "BRAND: " + DeviceInfoManager.BRAND);*/
         infoList.add(new Info("Brand" , DeviceInfoManager.BRAND));
         /*Log.d("device_info_debug", "DISPLAY: " + DeviceInfoManager.DISPLAY);*/
-        infoList.add(new Info("Display" , DeviceInfoManager.DISPLAY));
+        //infoList.add(new Info("Display" , DeviceInfoManager.DISPLAY));
         /*Log.d("device_info_debug", "SUPPORTED_ABIS: " + Arrays.toString(DeviceInfoManager.SUPPORTED_ABIS));
         Log.d("device_info_debug", "UNKNOWN: " + DeviceInfoManager.UNKNOWN);*/
        /* Log.d("device_info_debug", "HARDWARE: " + DeviceInfoManager.HARDWARE);*/
-        infoList.add(new Info("Hardware" , DeviceInfoManager.HARDWARE));
+        //infoList.add(new Info("Hardware" , DeviceInfoManager.HARDWARE));
        /* Log.d("device_info_debug", "Build: " + DeviceInfoManager.Build);*/
-        infoList.add(new Info("Build" , DeviceInfoManager.Build));
+        //infoList.add(new Info("Build" , DeviceInfoManager.Build));
         /*Log.d("device_info_debug", "MANUFACTURER: " + DeviceInfoManager.MANUFACTURER);*/
-        infoList.add(new Info("Manufacturer" , DeviceInfoManager.MANUFACTURER));
+        //infoList.add(new Info("Manufacturer" , DeviceInfoManager.MANUFACTURER));
         /*Log.d("device_info_debug", "SERIAL: " + DeviceInfoManager.SERIAL);*/
-        infoList.add(new Info("Serial" , DeviceInfoManager.SERIAL));
+        //infoList.add(new Info("Serial" , DeviceInfoManager.SERIAL));
         /*Log.d("device_info_debug", "USER: " + DeviceInfoManager.USER);*/
-        infoList.add(new Info("User" , DeviceInfoManager.USER));
+        //infoList.add(new Info("User" , DeviceInfoManager.USER));
         /*Log.d("device_info_debug", "HOST: " + DeviceInfoManager.HOST);*/
-        infoList.add(new Info("Host" , DeviceInfoManager.HOST));
+        //infoList.add(new Info("Host" , DeviceInfoManager.HOST));
 
     }
 
@@ -522,6 +542,7 @@ public class MainActivity extends AppCompatActivity {
                 super.onLocationResult(locationResult);
 
                 mCurrentLocation = locationResult.getLastLocation();
+                getAddress();
                 //mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
                 //updateLocationUI();
             }
@@ -791,6 +812,9 @@ public class MainActivity extends AppCompatActivity {
     private void getAddress(){
 
         infoList.add(new Info("Current Address" , getCurrentAddress()));
+        adapter.notifyDataSetChanged();
+        stopLocationUpdates();
+
 
     }
 
