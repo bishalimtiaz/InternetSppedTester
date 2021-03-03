@@ -319,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
 
            //adapter.setInfoList(infoList);
            //behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-           Log.d("location_debug", "setupClicks: lattitude: " + mCurrentLocation.getLatitude()+ " Longitude: " + mCurrentLocation.getLongitude());
+           //Log.d("location_debug", "setupClicks: lattitude: " + mCurrentLocation.getLatitude()+ " Longitude: " + mCurrentLocation.getLongitude());
        });
 
        //bottomSheetBinding.cancelBtn.setOnClickListener(v -> behavior.setState(BottomSheetBehavior.STATE_COLLAPSED));
